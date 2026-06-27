@@ -1,13 +1,40 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const path = require("path");
 
 const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server);
 
 const PORT = 3000;
 
-app.get("/", (req, res) => {
-    res.send("🚀 Welcome to the ZayneChat Server!");
+// Serve frontend files
+app.use(express.static(path.join(__dirname, "../client")));
+
+io.on("connection", (socket) => {
+
+    console.log("User Connected:", socket.id);
+
+    socket.on("chat message", (message) => {
+
+        console.log(message);
+
+        io.emit("chat message", message);
+
+    });
+
+    socket.on("disconnect", () => {
+
+        console.log("User Disconnected");
+
+    });
+
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+server.listen(PORT, () => {
+
+    console.log(`Server running on http://localhost:${PORT}`);
+
 });

@@ -1,49 +1,59 @@
+const socket = io();
+
 const input = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 const messages = document.getElementById("messages");
 
 function currentTime() {
-
-    const now = new Date();
-
-    return now.toLocaleTimeString([], {
+    return new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit"
     });
-
 }
 
-function sendMessage() {
+function addMessage(text, type) {
 
-    const text = input.value.trim();
+    const div = document.createElement("div");
 
-    if(text === "") return;
+    div.className = `msg ${type}`;
 
-    const message = document.createElement("div");
-
-    message.classList.add("msg","sent");
-
-    message.innerHTML = `
+    div.innerHTML = `
         <p>${text}</p>
         <span>${currentTime()}</span>
     `;
 
-    messages.appendChild(message);
-
-    input.value="";
+    messages.appendChild(div);
 
     messages.scrollTop = messages.scrollHeight;
 
 }
 
-sendBtn.addEventListener("click", sendMessage);
+sendBtn.addEventListener("click", () => {
 
-input.addEventListener("keypress", function(e){
+    const text = input.value.trim();
 
-    if(e.key==="Enter"){
+    if (!text) return;
 
-        sendMessage();
+    addMessage(text, "sent");
+
+    socket.emit("chat message", text);
+
+    input.value = "";
+
+});
+
+input.addEventListener("keypress", (e) => {
+
+    if (e.key === "Enter") {
+
+        sendBtn.click();
 
     }
+
+});
+
+socket.on("chat message", (message) => {
+
+    addMessage(message, "received");
 
 });
