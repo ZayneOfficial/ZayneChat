@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZayneChat | Dashboard</title>
+
+    <link rel="stylesheet" href="dashboard.css">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+        <div class="top">
+            <h2>💬 ZayneChat</h2>
+        </div>
+
+        <div class="search">
+            <i class="fa fa-search"></i>
+            <input type="text" placeholder="Search contacts...">
+        </div>
+
+        <div class="contacts">
+
+            <div class="contact active">
+                <img src="images/avatars/avatar1.jpg">
+                <div>
+                    <h4>Emma</h4>
+                    <p>Hello 👋</p>
+                </div>
+                <span class="online"></span>
+            </div>
+
+            <div class="contact">
+                <img src="images/avatars/avatar2.jpg">
+                <div>
+                    <h4>David</h4>
+                    <p>Are you there?</p>
+                </div>
+                <span class="offline"></span>
+            </div>
+
+            <div class="contact">
+                <img src="images/avatars/avatar3.jpg">
+                <div>
+                    <h4>Sarah</h4>
+                    <p>Let’s talk</p>
+                </div>
+                <span class="online"></span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- CHAT AREA -->
+    <div class="chat">
+
+        <!-- HEADER -->
+        <div class="chat-header">
+
+            <div class="user-info">
+                <img src="images/avatars/avatar1.jpg">
+                <div>
+                    <h3>Emma</h3>
+                    <small>Online</small>
+                </div>
+            </div>
+
+            <div class="actions">
+                <i class="fa fa-phone"></i>
+                <i class="fa fa-video"></i>
+                <i class="fa fa-ellipsis-vertical"></i>
+            </div>
+
+        </div>
+
+        <!-- MESSAGES -->
+        <div class="messages" id="messages">
+
+    <div class="msg received">
+        <p>Hi 👋 How are you?</p>
+        <span>09:15</span>
+    </div>
+
+    <div class="msg sent">
+        <p>I'm good! What about you?</p>
+        <span>09:16</span>
+    </div>
+
+</div>
+
+        <!-- INPUT -->
+        <div class="chat-input">
+
+            <div class="chat-input">
+
+    <i class="fa-solid fa-face-smile"></i>
+    <i class="fa-solid fa-paperclip"></i>
+
+    <input
+        type="text"
+        id="messageInput"
+        placeholder="Type a message...">
+
+    <button id="sendBtn" type="button">
+        <i class="fa-solid fa-paper-plane"></i>
+    </button>
+
+</div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="dashboard.js"></script>
+
+</body>
+</html>
