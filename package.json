@@ -1,0 +1,28 @@
+{
+  "name": "zaynechat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "start": "node server/server.js",
+  "dev": "nodemon server/server.js"
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZayneOfficial/ZayneChat.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ZayneOfficial/ZayneChat/issues"
+  },
+  "homepage": "https://github.com/ZayneOfficial/ZayneChat#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
