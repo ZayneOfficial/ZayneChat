@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account | ZayneChat</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="style.css">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -37,7 +37,7 @@
 
     <div class="right">
 
-        <form class="login-card">
+        <form class="login-card" id="registerForm">
 
             <h2>Create Account</h2>
 
@@ -45,33 +45,34 @@
 
             <div class="input-box">
                 <i class="fa-solid fa-user"></i>
-                <input type="text" placeholder="Full Name" required>
+                <input type="text" id="username" placeholder="Full Name" required>
             </div>
 
             <div class="input-box">
                 <i class="fa-solid fa-envelope"></i>
-                <input type="email" placeholder="Email Address" required>
+                <input type="email" id="email" placeholder="Email Address" required>
             </div>
 
             <div class="input-box">
                 <i class="fa-solid fa-phone"></i>
-                <input type="tel" placeholder="Phone Number" required>
+                <input type="tel" id="phone" placeholder="Phone Number" required>
             </div>
 
             <div class="input-box">
                 <i class="fa-solid fa-lock"></i>
-                <input type="password" placeholder="Password" required>
+                <input type="password" id="password" placeholder="Password" required>
             </div>
 
             <div class="input-box">
                 <i class="fa-solid fa-lock"></i>
-                <input type="password" placeholder="Confirm Password" required>
+                <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
             </div>
 
             <label class="terms">
                 <input type="checkbox" required>
                 I agree to the Terms & Conditions
             </label>
+            <p id="message"></p>
 
             <button type="submit" class="login-btn">
                 Create Account
@@ -88,7 +89,7 @@
 
 </div>
 
-<script src="js/script.js"></script>
+<script src="script.js"></script>
 
 </body>
 </html>
