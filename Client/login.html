@@ -37,7 +37,7 @@
 
     <div class="right">
 
-        <form class="login-card">
+        <form class="login-card" id="loginForm">
 
             <h2>Welcome Back</h2>
 
@@ -47,7 +47,7 @@
                 <i class="fa-solid fa-envelope"></i>
 
                 <input
-                type="email"
+                type="email" id="email"
                 placeholder="Email Address"
                 required>
             </div>
@@ -57,12 +57,12 @@
                 <i class="fa-solid fa-lock"></i>
 
                 <input
-                type="password"
+                type="password" id="password"
                 placeholder="Password"
                 required>
 
             </div>
-
+<p id="message"></p>
             <button type="submit" class="login-btn" id="login-btn">
                 Login
             </button>
@@ -98,7 +98,7 @@
 
 </div>
 
-<script src="script.js"></script>
+<script src="login.js"></script>
 
 </body>
 </html>
