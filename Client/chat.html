@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZayneChat</title>
+
+    <link rel="stylesheet" href="chat.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+
+<div class="chat-container">
+
+    <!-- Sidebar -->
+
+    <aside class="sidebar">
+
+        <div class="profile">
+
+            <img src="images/avatars/avatar1.jpg" id="userAvatar">
+
+            <h3 id="username">Loading...</h3>
+
+        </div>
+
+        <div class="contacts">
+
+    <h4>Online Users</h4>
+
+    <ul id="onlineUsers"></ul>
+
+</div>
+
+    </aside>
+
+    <!-- Chat Area -->
+
+    <main class="chat-area">
+
+        <div class="chat-header">
+
+            <h2>General Chat</h2>
+
+        </div>
+
+        <div class="messages" id="messages">
+
+        </div>
+<div id="typingIndicator" class="typing"></div>
+        <form id="messageForm">
+
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="Type your message..."
+                autocomplete="off"
+                required>
+
+            <button type="submit">
+                Send
+            </button>
+
+        </form>
+
+    </main>
+
+</div>
+
+<script src="chat.js"></script>
+
+</body>
+</html>

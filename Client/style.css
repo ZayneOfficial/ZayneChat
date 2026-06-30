@@ -242,3 +242,21 @@ button{
     }
 
 }
+.avatar-selection{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin:20px 0;
+
+}
+
+.avatar-selection img{
+
+    width:70px;
+
+    height:70px;
+
+    border-radius:50%;
+}

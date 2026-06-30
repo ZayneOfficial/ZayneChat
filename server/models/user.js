@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
 
     avatar: {
       type: String,
-      default: "avatar1.png",
+      default: "images/avatars/avatar1.jpg",
     },
 
     online: {
@@ -36,4 +36,5 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("User", userSchema);
+module.exports =
+  mongoose.models.User || mongoose.model("User", userSchema);
