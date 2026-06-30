@@ -2,6 +2,7 @@ const socket = io();
 
 const username = localStorage.getItem("username");
 const avatar = localStorage.getItem("avatars");
+let selectedUser = null;
 
 socket.emit("user connected", username);
 
@@ -14,181 +15,205 @@ document.getElementById("username").textContent = username;
 document.getElementById("userAvatar").src = "images/avatars/" + avatar;
 
 // =========================
-// Load previous messages
+// Load all messages
 // =========================
 async function loadMessages() {
+  try {
+    const response = await fetch("http://localhost:3000/api/messages");
+    const data = await response.json();
 
-    try {
+    messages.innerHTML = "";
 
-        const response = await fetch("http://localhost:3000/api/messages");
-        const data = await response.json();
+    data.forEach(renderMessage);
 
-        messages.innerHTML = "";
-
-        data.forEach(message => {
-
-            const div = document.createElement("div");
-
-            div.className =
-                message.sender === username
-                    ? "message own-message"
-                    : "message other-message";
-
-            const time = new Date(message.createdAt).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit"
-            });
-
-            div.innerHTML = `
-    <div class="message-header">
-        <img src="images/avatars/${message.avatar}" class="chat-avatar">
-        <div>
-            <strong>${message.sender}</strong>
-            <small>${time}</small>
-        </div>
-    </div>
-
-    <div class="message-text">
-        ${message.text}
-    </div>
-`;
-            messages.appendChild(div);
-
-        });
-
-        messages.scrollTop = messages.scrollHeight;
-
-    } catch (error) {
-
-        console.error("Failed to load messages:", error);
-
-    }
-
+    messages.scrollTop = messages.scrollHeight;
+  } catch (error) {
+    console.error("Failed to load messages:", error);
+  }
 }
 
 loadMessages();
 
+function renderMessage(message) {
+
+    const sender = message.sender || message.username;
+
+    const div = document.createElement("div");
+
+    const isMine = sender === username;
+
+    div.className = isMine
+        ? "message own-message"
+        : "message other-message";
+
+    const time = new Date(message.createdAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    const statusIcon =
+        message.status === "sent"
+            ? "✓"
+            : message.status === "delivered"
+            ? "✓✓"
+            : "✓✓";
+
+    div.innerHTML = `
+        <div class="message-header">
+
+            <img
+                src="images/avatars/${message.avatar}"
+                class="chat-avatar"
+            >
+
+            <div>
+
+                <strong>${sender}</strong>
+
+                <small>${time}</small>
+
+            </div>
+
+        </div>
+
+        <div class="message-text">
+
+            ${message.text}
+
+        </div>
+
+        ${isMine ? `<small class="status">${statusIcon}</small>` : ""}
+
+    `;
+
+    messages.appendChild(div);
+
+}
 // =========================
 // Typing Indicator
 // =========================
 let typingTimeout;
 
 input.addEventListener("input", () => {
+  socket.emit("typing", username);
 
-    socket.emit("typing", username);
+  clearTimeout(typingTimeout);
 
-    clearTimeout(typingTimeout);
-
-    typingTimeout = setTimeout(() => {
-
-        socket.emit("stop typing");
-
-    }, 1500);
-
+  typingTimeout = setTimeout(() => {
+    socket.emit("stop typing");
+  }, 1500);
 });
 
 // =========================
 // Send Message
 // =========================
 form.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-    e.preventDefault();
+  if (input.value.trim() === "") return;
 
-    if (input.value.trim() === "") return;
+  if (!selectedUser) {
+    alert("Please select a user first.");
+    return;
+  }
 
-    socket.emit("stop typing");
+  socket.emit("stop typing");
 
-    socket.emit("chat message", {
-        username,
-        text: input.value
-    });
+  socket.emit("chat message", {
+    username,
+    receiver: selectedUser,
+    text: input.value,
+  });
 
-    input.value = "";
-
+  input.value = "";
 });
 
 // =========================
 // Receive Message
 // =========================
 socket.on("chat message", (data) => {
+  if (
+    data.username !== selectedUser &&
+    data.receiver !== selectedUser &&
+    data.username !== username
+  ) {
+    return;
+  }
 
-    const div = document.createElement("div");
+  renderMessage(data);
 
-    div.className =
-        data.username === username
-            ? "message own-message"
-            : "message other-message";
-
-    const time = new Date(data.createdAt).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-    });
-
-    div.innerHTML = `
-        <div class="message-header">
-            <img src="images/avatars/${data.avatar || "images/avatars/avatar1.jpg"}" class="chat-avatar">
-
-            <div>
-                <strong>${data.username}</strong>
-                <small>${time}</small>
-            </div>
-        </div>
-
-        <div class="message-text">
-            ${data.text}
-        </div>
-    `;
-
-    messages.appendChild(div);
-
-    messages.scrollTop = messages.scrollHeight;
-
+  messages.scrollTop = messages.scrollHeight;
 });
 
 // =========================
 // Online Users
 // =========================
 socket.on("online users", (users) => {
+  const list = document.getElementById("onlineUsers");
 
-    const list = document.getElementById("onlineUsers");
+  list.innerHTML = "";
 
-    list.innerHTML = "";
+  users.forEach((user) => {
+    if (user === username) return;
 
-    users.forEach(user => {
+    const li = document.createElement("li");
+    li.textContent = "🟢 " + user;
+    li.style.cursor = "pointer";
 
-        const li = document.createElement("li");
+    li.onclick = () => {
+      selectedUser = user;
 
-        li.textContent = "🟢 " + user;
+      document.getElementById("currentChat").textContent =
+        "Chatting with: " + user;
 
-        list.appendChild(li);
+      loadConversation();
+    };
 
-    });
-
+    list.appendChild(li);
+  });
 });
 
 // =========================
-// Typing Events
+// Typing events from server
 // =========================
 let indicatorTimeout;
 
 socket.on("typing", (user) => {
+  if (user === username) return;
 
-    if (user === username) return;
+  typingIndicator.textContent = `${user} is typing...`;
 
-    typingIndicator.textContent = `${user} is typing...`;
+  clearTimeout(indicatorTimeout);
 
-    clearTimeout(indicatorTimeout);
-
-    indicatorTimeout = setTimeout(() => {
-        typingIndicator.textContent = "";
-    }, 2000);
-
+  indicatorTimeout = setTimeout(() => {
+    typingIndicator.textContent = "";
+  }, 2000);
 });
 
 socket.on("stop typing", () => {
-
-    typingIndicator.textContent = "";
-
-    clearTimeout(indicatorTimeout);
-
+  typingIndicator.textContent = "";
+  clearTimeout(indicatorTimeout);
 });
+
+// =========================
+// Load private conversation
+// =========================
+async function loadConversation() {
+  if (!selectedUser) return;
+
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/messages/${username}/${selectedUser}`
+    );
+
+    const data = await response.json();
+
+    messages.innerHTML = "";
+
+    data.forEach(renderMessage);
+
+    messages.scrollTop = messages.scrollHeight;
+  } catch (err) {
+    console.error("Conversation load failed:", err);
+  }
+}

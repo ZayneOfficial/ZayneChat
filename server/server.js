@@ -34,6 +34,7 @@ app.use(express.static(path.join(__dirname, "../client")));
 // API Routes
 app.use("/api/auth", authRoutes);
 
+
 // Socket.IO
 io.on("connection", (socket) => {
 
@@ -42,47 +43,92 @@ io.on("connection", (socket) => {
     // User comes online
     socket.on("user connected", (username) => {
 
-        onlineUsers[socket.id] = username;
+        onlineUsers[socket.id] = {
+            username: username
+        };
 
         console.log("Online Users:", onlineUsers);
 
-        io.emit("online users", Object.values(onlineUsers));
+        io.emit(
+            "online users",
+            Object.values(onlineUsers).map(user => user.username)
+        );
 
     });
+
+    // Typing indicator
     socket.on("typing", (username) => {
 
-    socket.broadcast.emit("typing", username);
+        socket.broadcast.emit("typing", username);
 
-});
+    });
 
-socket.on("stop typing", () => {
+    socket.on("stop typing", () => {
 
-    socket.broadcast.emit("stop typing");
+        socket.broadcast.emit("stop typing");
 
-});
+    });
 
     // Chat messages
-    socket.on("chat message", async (data) => {
+socket.on("chat message", async (data) => {
 
     try {
 
-        // Find the sender in the database
+        // Find sender
         const user = await User.findOne({
             username: data.username
         });
 
+        if (!user) {
+            return;
+        }
+
+        // Create message
         const message = new Message({
             sender: data.username,
+            receiver: data.receiver,
             text: data.text,
-            avatar: user.avatar
+            avatar: user.avatar,
+            status: "sent"
         });
 
         await message.save();
 
-        io.emit("chat message", {
+        // Receiver is online?
+        let delivered = false;
+
+        for (const id in onlineUsers) {
+
+            if (onlineUsers[id].username === data.receiver) {
+
+                delivered = true;
+
+                message.status = "delivered";
+                await message.save();
+
+                io.to(id).emit("chat message", {
+                    _id: message._id,
+                    username: message.sender,
+                    receiver: message.receiver,
+                    text: message.text,
+                    avatar: message.avatar,
+                    status: message.status,
+                    createdAt: message.createdAt
+                });
+
+                break;
+            }
+
+        }
+
+        // Sender receives message
+        socket.emit("chat message", {
+            _id: message._id,
             username: message.sender,
+            receiver: message.receiver,
             text: message.text,
             avatar: message.avatar,
+            status: message.status,
             createdAt: message.createdAt
         });
 
@@ -93,17 +139,6 @@ socket.on("stop typing", () => {
     }
 
 });
-
-    // User disconnects
-    socket.on("disconnect", () => {
-
-        delete onlineUsers[socket.id];
-
-        io.emit("online users", Object.values(onlineUsers));
-
-        console.log("User Disconnected");
-
-    });
 
 });
 // Start Server
