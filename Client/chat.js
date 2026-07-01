@@ -217,3 +217,28 @@ async function loadConversation() {
     console.error("Conversation load failed:", err);
   }
 }
+const emojiBtn = document.getElementById("emojiBtn");
+const emojiPicker = document.getElementById("emojiPicker");
+
+// Show/Hide picker
+emojiBtn.addEventListener("click", () => {
+
+    emojiPicker.style.display =
+        emojiPicker.style.display === "block"
+            ? "none"
+            : "block";
+
+});
+
+// Add emoji to input
+emojiPicker.addEventListener("click", (e) => {
+
+    if (e.target.textContent.trim() !== "") {
+
+        input.value += e.target.textContent;
+
+        input.focus();
+
+    }
+
+});
