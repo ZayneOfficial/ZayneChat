@@ -28,8 +28,9 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 app.use("/api/messages", messageRoutes);
+
 // Serve frontend
-app.use(express.static(path.join(__dirname, "../client")));
+app.use(express.static(path.join(__dirname, "../Client")));
 
 // API Routes
 app.use("/api/auth", authRoutes);
