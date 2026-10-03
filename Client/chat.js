@@ -405,6 +405,14 @@ function renderUserList() {
 
   list.innerHTML = "";
 
+  if (!selectedUser && allUsers.length > 0) {
+    const preferredUser = allUsers.find((user) => onlineUsersSet.has(user.username)) || allUsers[0];
+    selectedUser = preferredUser.username;
+    document.getElementById("currentChat").textContent = preferredUser.username;
+    document.getElementById("chatStatus").textContent = onlineUsersSet.has(preferredUser.username) ? "Online" : "Offline";
+    document.getElementById("activeChatAvatar").src = `images/avatars/${preferredUser.avatar || "avatar1.jpg"}`;
+  }
+
   allUsers.forEach((user) => {
     const isOnline = onlineUsersSet.has(user.username);
     const li = document.createElement("li");
@@ -429,6 +437,10 @@ function renderUserList() {
 
     list.appendChild(li);
   });
+
+  if (selectedUser) {
+    loadConversation();
+  }
 }
 
 socket.on("online users", (users) => {
