@@ -18,6 +18,18 @@ const input = document.getElementById("messageInput");
 const messages = document.getElementById("messages");
 const typingIndicator = document.getElementById("typingIndicator");
 const closeChatBtn = document.getElementById("closeChatBtn");
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+
+function toggleSidebar(forceOpen) {
+  const sidebar = document.querySelector(".sidebar");
+  const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : !sidebar.classList.contains("open");
+  sidebar.classList.toggle("open", shouldOpen);
+  sidebar.style.transform = shouldOpen ? "translateX(0)" : "translateX(-110%)";
+}
+
+if (mobileMenuBtn) {
+  mobileMenuBtn.addEventListener("click", () => toggleSidebar());
+}
 
 function showEmptyChat() {
   messages.innerHTML = `
@@ -411,6 +423,7 @@ function renderUserList() {
         item.classList.toggle("active", item === li);
       });
 
+      toggleSidebar(false);
       loadConversation();
     };
 
