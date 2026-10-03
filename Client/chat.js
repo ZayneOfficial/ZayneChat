@@ -17,6 +17,33 @@ const form = document.getElementById("messageForm");
 const input = document.getElementById("messageInput");
 const messages = document.getElementById("messages");
 const typingIndicator = document.getElementById("typingIndicator");
+const closeChatBtn = document.getElementById("closeChatBtn");
+
+function showEmptyChat() {
+  messages.innerHTML = `
+    <div class="empty-chat">
+      <div class="empty-chat-box">
+        <h3>General Chat</h3>
+        <p>Select a user to start chatting.</p>
+      </div>
+    </div>
+  `;
+}
+
+function closeChat() {
+  selectedUser = null;
+  document.getElementById("currentChat").textContent = "General Chat";
+  document.getElementById("chatStatus").textContent = "Select a contact";
+  document.getElementById("activeChatAvatar").src = "images/avatars/" + avatar;
+  showEmptyChat();
+
+  const list = document.getElementById("onlineUsers");
+  if (list) {
+    list.querySelectorAll("li").forEach((item) => item.classList.remove("active"));
+  }
+}
+
+closeChatBtn.addEventListener("click", closeChat);
 
 document.getElementById("username").textContent = username;
 document.getElementById("userAvatar").src = "images/avatars/" + avatar;
@@ -424,7 +451,10 @@ socket.on("stop typing", () => {
 // Load private conversation
 // =========================
 async function loadConversation() {
-  if (!selectedUser) return;
+  if (!selectedUser) {
+    showEmptyChat();
+    return;
+  }
 
   try {
     const response = await fetch(
@@ -434,6 +464,14 @@ async function loadConversation() {
     const data = await response.json();
 
     messages.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "empty-chat";
+      empty.innerHTML = `<div class="empty-chat-box"><h3>${selectedUser}</h3><p>No messages yet. Say hello.</p></div>`;
+      messages.appendChild(empty);
+      return;
+    }
 
     data.forEach(renderMessage);
 
