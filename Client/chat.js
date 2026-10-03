@@ -157,14 +157,22 @@ socket.on("online users", (users) => {
     if (user === username) return;
 
     const li = document.createElement("li");
-    li.textContent = "🟢 " + user;
+    li.textContent = user;
     li.style.cursor = "pointer";
+
+    if (selectedUser === user) {
+      li.classList.add("active");
+    }
 
     li.onclick = () => {
       selectedUser = user;
 
-      document.getElementById("currentChat").textContent =
-        "Chatting with: " + user;
+      document.getElementById("currentChat").textContent = user;
+      document.getElementById("chatStatus").textContent = "Online";
+
+      list.querySelectorAll("li").forEach((item) => {
+        item.classList.toggle("active", item === li);
+      });
 
       loadConversation();
     };

@@ -31,6 +31,9 @@ app.use("/api/messages", messageRoutes);
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, "../Client")));
+app.get("/", (req, res) => {
+  res.redirect("/login.html");
+});
 
 // API Routes
 app.use("/api/auth", authRoutes);
