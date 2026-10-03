@@ -1,5 +1,6 @@
 console.log("script.js loaded");
 
+const API_BASE = window.location.origin;
 const form = document.getElementById("registerForm");
 
 form.addEventListener("submit", async (e) => {
@@ -29,7 +30,7 @@ form.addEventListener("submit", async (e) => {
 
     try {
 
-        const response = await fetch("http://localhost:3000/api/auth/register", {
+        const response = await fetch(`${API_BASE}/api/auth/register`, {
 
             method: "POST",
 

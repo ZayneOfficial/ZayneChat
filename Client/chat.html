@@ -51,9 +51,10 @@
             </div>
 
             <div class="actions">
-                <i class="fa fa-phone"></i>
-                <i class="fa fa-video"></i>
-                <i class="fa fa-ellipsis-vertical"></i>
+                <button type="button" class="call-btn" id="voiceCallBtn" aria-label="Voice call"><i class="fa fa-phone"></i></button>
+                <button type="button" class="call-btn" id="videoCallBtn" aria-label="Video call"><i class="fa fa-video"></i></button>
+                <button type="button" class="call-btn" id="fileBtn" aria-label="Send file"><i class="fa fa-paperclip"></i></button>
+                <input id="fileInput" type="file" hidden>
             </div>
         </div>
 
@@ -84,6 +85,17 @@
 
     </main>
 
+</div>
+
+<div id="callPanel" class="call-panel">
+    <div class="call-box">
+        <h3 id="callTitle">Call in progress</h3>
+        <video id="localVideo" autoplay muted playsinline></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+        <div class="call-actions">
+            <button type="button" class="end" id="endCallBtn">End Call</button>
+        </div>
+    </div>
 </div>
 
 <script src="chat.js"></script>

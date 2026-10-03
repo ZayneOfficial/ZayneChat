@@ -1,4 +1,5 @@
 const form = document.getElementById("loginForm");
+const API_BASE = window.location.origin;
 
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -8,7 +9,7 @@ form.addEventListener("submit", async (e) => {
     const message = document.getElementById("message");
 
     try {
-        const response = await fetch("http://localhost:3000/api/auth/login", {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

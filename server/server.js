@@ -12,12 +12,27 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
+const multer = require("multer");
+const fs = require("fs");
 
 const authRoutes = require("./routes/authRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+const uploadDir = path.join(__dirname, "../uploads");
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        const name = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+        cb(null, name);
+    },
+});
+
+const upload = multer({ storage });
 
 const PORT = process.env.PORT || 3000;
 
@@ -25,14 +40,37 @@ const PORT = process.env.PORT || 3000;
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true,
+}));
 app.use(express.json());
+app.use("/uploads", express.static(uploadDir));
 app.use("/api/messages", messageRoutes);
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, "../Client")));
 app.get("/", (req, res) => {
   res.redirect("/login.html");
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
+app.post("/api/messages/upload", upload.single("file"), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    res.status(200).json({
+        message: "File uploaded successfully",
+        file: {
+            name: req.file.originalname,
+            url: `/uploads/${req.file.filename}`,
+            type: req.file.mimetype,
+        },
+    });
 });
 
 // API Routes
@@ -78,35 +116,25 @@ socket.on("chat message", async (data) => {
 
     try {
 
-        // Find sender
-        const user = await User.findOne({
-            username: data.username
-        });
+        const user = await User.findOne({ username: data.username });
 
         if (!user) {
             return;
         }
 
-        // Create message
         const message = new Message({
             sender: data.username,
             receiver: data.receiver,
-            text: data.text,
+            text: data.text || "",
+            attachment: data.attachment || null,
             avatar: user.avatar,
             status: "sent"
         });
 
         await message.save();
 
-        // Receiver is online?
-        let delivered = false;
-
         for (const id in onlineUsers) {
-
             if (onlineUsers[id].username === data.receiver) {
-
-                delivered = true;
-
                 message.status = "delivered";
                 await message.save();
 
@@ -115,34 +143,79 @@ socket.on("chat message", async (data) => {
                     username: message.sender,
                     receiver: message.receiver,
                     text: message.text,
+                    attachment: message.attachment,
                     avatar: message.avatar,
                     status: message.status,
                     createdAt: message.createdAt
                 });
-
                 break;
             }
-
         }
 
-        // Sender receives message
         socket.emit("chat message", {
             _id: message._id,
             username: message.sender,
             receiver: message.receiver,
             text: message.text,
+            attachment: message.attachment,
             avatar: message.avatar,
             status: message.status,
             createdAt: message.createdAt
         });
 
     } catch (error) {
-
         console.error(error);
-
     }
-
 });
+
+    socket.on("call:offer", (payload) => {
+        const targetSocketId = Object.keys(onlineUsers).find(
+            (id) => onlineUsers[id].username === payload.to
+        );
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("call:offer", {
+                from: payload.from,
+                offer: payload.offer,
+            });
+        }
+    });
+
+    socket.on("call:answer", (payload) => {
+        const targetSocketId = Object.keys(onlineUsers).find(
+            (id) => onlineUsers[id].username === payload.to
+        );
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("call:answer", {
+                from: payload.from,
+                answer: payload.answer,
+            });
+        }
+    });
+
+    socket.on("call:ice-candidate", (payload) => {
+        const targetSocketId = Object.keys(onlineUsers).find(
+            (id) => onlineUsers[id].username === payload.to
+        );
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("call:ice-candidate", {
+                from: payload.from,
+                candidate: payload.candidate,
+            });
+        }
+    });
+
+    socket.on("call:hangup", (payload) => {
+        const targetSocketId = Object.keys(onlineUsers).find(
+            (id) => onlineUsers[id].username === payload.to
+        );
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("call:hangup", { from: payload.from });
+        }
+    });
 
 });
 // Start Server
