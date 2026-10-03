@@ -78,8 +78,6 @@ async function loadMessages() {
   }
 }
 
-loadMessages();
-
 function renderMessage(message) {
 
     const sender = message.sender || message.username;
