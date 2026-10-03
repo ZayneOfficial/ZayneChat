@@ -58,6 +58,25 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
+app.get("/api/users", async (req, res) => {
+  try {
+    const currentUser = req.query.current || "";
+    const users = await User.find({
+      username: { $ne: currentUser },
+    }).select("username avatar online");
+
+    const formatted = users.map((user) => ({
+      username: user.username,
+      avatar: user.avatar || "avatar1.jpg",
+      online: Boolean(user.online),
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 app.post("/api/messages/upload", upload.single("file"), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -83,11 +102,19 @@ io.on("connection", (socket) => {
     console.log("User Connected:", socket.id);
 
     // User comes online
-    socket.on("user connected", (username) => {
+    socket.on("user connected", async (username) => {
+
+        if (!username) return;
 
         onlineUsers[socket.id] = {
             username: username
         };
+
+        const userRecord = await User.findOne({ username });
+        if (userRecord) {
+            userRecord.online = true;
+            await userRecord.save();
+        }
 
         console.log("Online Users:", onlineUsers);
 
@@ -96,6 +123,23 @@ io.on("connection", (socket) => {
             Object.values(onlineUsers).map(user => user.username)
         );
 
+    });
+
+    socket.on("disconnect", async () => {
+        const currentUser = onlineUsers[socket.id]?.username;
+        if (currentUser) {
+            delete onlineUsers[socket.id];
+            const userRecord = await User.findOne({ username: currentUser });
+            if (userRecord) {
+                userRecord.online = false;
+                await userRecord.save();
+            }
+        }
+
+        io.emit(
+            "online users",
+            Object.values(onlineUsers).map(user => user.username)
+        );
     });
 
     // Typing indicator

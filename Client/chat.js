@@ -8,6 +8,8 @@ let localStream = null;
 let peerConnection = null;
 let currentCallType = "voice";
 let pendingCandidates = [];
+let allUsers = [];
+let onlineUsersSet = new Set();
 
 socket.emit("user connected", username);
 
@@ -347,30 +349,36 @@ socket.on("call:hangup", () => {
   endCall();
 });
 
-// =========================
-// Online Users
-// =========================
-socket.on("online users", (users) => {
+async function loadAllUsers() {
+  try {
+    const response = await fetch(`${API_BASE}/api/users?current=${encodeURIComponent(username)}`);
+    const data = await response.json();
+    allUsers = Array.isArray(data) ? data : [];
+    renderUserList();
+  } catch (err) {
+    console.error("Failed to load users:", err);
+  }
+}
+
+function renderUserList() {
   const list = document.getElementById("onlineUsers");
+  if (!list) return;
 
   list.innerHTML = "";
 
-  users.forEach((user) => {
-    if (user === username) return;
-
+  allUsers.forEach((user) => {
+    const isOnline = onlineUsersSet.has(user.username);
     const li = document.createElement("li");
-    li.textContent = user;
+    li.textContent = user.username;
     li.style.cursor = "pointer";
-
-    if (selectedUser === user) {
-      li.classList.add("active");
-    }
+    li.classList.toggle("active", selectedUser === user.username);
+    li.classList.toggle("offline", !isOnline);
 
     li.onclick = () => {
-      selectedUser = user;
-
-      document.getElementById("currentChat").textContent = user;
-      document.getElementById("chatStatus").textContent = "Online";
+      selectedUser = user.username;
+      document.getElementById("currentChat").textContent = user.username;
+      document.getElementById("chatStatus").textContent = isOnline ? "Online" : "Offline";
+      document.getElementById("activeChatAvatar").src = `images/avatars/${user.avatar || "avatar1.jpg"}`;
 
       list.querySelectorAll("li").forEach((item) => {
         item.classList.toggle("active", item === li);
@@ -381,7 +389,14 @@ socket.on("online users", (users) => {
 
     list.appendChild(li);
   });
+}
+
+socket.on("online users", (users) => {
+  onlineUsersSet = new Set(users || []);
+  renderUserList();
 });
+
+loadAllUsers();
 
 // =========================
 // Typing events from server
@@ -429,26 +444,23 @@ async function loadConversation() {
 }
 const emojiBtn = document.getElementById("emojiBtn");
 const emojiPicker = document.getElementById("emojiPicker");
+const emojiSet = ["😀", "😃", "😄", "😁", "😆", "😂", "🤣", "😊", "😍", "😎", "😢", "😡", "😴", "❤️", "💙", "💚", "💛", "🧡", "💜", "👍", "👎", "👏", "🙌", "🎉", "🎂", "🔥", "⭐", "🚀"];
 
-// Show/Hide picker
+emojiPicker.innerHTML = emojiSet
+    .map((emoji) => `<span class="emoji-option" title="${emoji}">${emoji}</span>`)
+    .join("");
+
 emojiBtn.addEventListener("click", () => {
-
-    emojiPicker.style.display =
-        emojiPicker.style.display === "block"
-            ? "none"
-            : "block";
-
+    const isOpen = emojiPicker.style.display === "flex";
+    emojiPicker.style.display = isOpen ? "none" : "flex";
 });
 
-// Add emoji to input
 emojiPicker.addEventListener("click", (e) => {
+    const emoji = e.target.closest(".emoji-option")?.textContent?.trim();
 
-    if (e.target.textContent.trim() !== "") {
+    if (!emoji) return;
 
-        input.value += e.target.textContent;
-
-        input.focus();
-
-    }
-
+    input.value += emoji;
+    input.focus();
+    emojiPicker.style.display = "none";
 });
